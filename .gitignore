@@ -1,0 +1,8 @@
+# Ignore build directories
+build/
+cmake-build-debug/
+
+# Ignore editor settings and other temporary files
+.idea/
+*.log
+*.mp4

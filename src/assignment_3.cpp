@@ -18,9 +18,54 @@ namespace flagPlane
 /* translation and scale for the scaled cube */
 namespace scaledCube
 {
+    const Vector4D color = {0.55f, 0.27f, 0.07f, 1.0f}; // Brown (Earth)
     const Matrix4D scale = Matrix4D::scale(2.0f, 2.0f, 2.0f);
     const Matrix4D trans = Matrix4D::identity();
 }
+
+// Create namespaces for protrusions
+namespace protrusionX
+{
+    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
+    const Matrix4D trans = Matrix4D::translation(Vector3D (2.0f, 0.0f, 0.0f));
+    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
+}
+
+namespace protrusionNOTX
+{
+    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
+    const Matrix4D trans = Matrix4D::translation(Vector3D (-2.0f, 0.0f, 0.0f));
+    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
+}
+
+namespace protrusionY
+{
+    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 2.0f, 0.0f));
+    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
+}
+
+namespace protrusionNOTY
+{
+    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, -2.0f, 0.0f));
+    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
+}
+
+namespace protrusionZ
+{
+    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, 2.0f));
+    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
+}
+
+namespace protrusionNOTZ
+{
+    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -2.0f));
+    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
+}
+
 
 /* struct holding all necessary state variables for scene */
 struct
@@ -43,6 +88,21 @@ struct
 
     /* shader */
     ShaderProgram shaderColor;
+
+    // Adding meshes and transformation matrices for the protrusions
+    Mesh protrusionXMesh;
+    Mesh protrusionNOTXMesh;
+    Mesh protrusionYMesh;
+    Mesh protrusionNOTYMesh;
+    Mesh protrusionZMesh;
+    Mesh protrusionNOTZMesh;
+
+    Matrix4D protrusionXMatrix;
+    Matrix4D protrusionNOTXMatrix;
+    Matrix4D protrusionYMatrix;
+    Matrix4D protrusionNOTYMatrix;
+    Matrix4D protrusionZMatrix;
+    Matrix4D protrusionNOTZMatrix;
 } sScene;
 
 /* struct holding all state variables for input */
@@ -135,8 +195,24 @@ void sceneInit(float width, float height)
     sScene.zoomSpeedMultiplier = 0.05f;
 
     /* setup objects in scene and create opengl buffers for meshes */
-    sScene.cubeMesh = meshCreate(cube::vertices, cube::indices, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.cubeMesh = meshCreate(cube::vertexPos, cube::indices, scaledCube::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
     sScene.flag = flagCreate(flagPlane::color);
+
+    // Create meshes for protrusions
+    sScene.protrusionXMesh = meshCreate(cube::vertexPos, cube::indices, protrusionX::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.protrusionNOTXMesh = meshCreate(cube::vertexPos, cube::indices, protrusionNOTX::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.protrusionYMesh = meshCreate(cube::vertexPos, cube::indices, protrusionY::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.protrusionNOTYMesh = meshCreate(cube::vertexPos, cube::indices, protrusionNOTY::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.protrusionZMesh = meshCreate(cube::vertexPos, cube::indices, protrusionZ::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.protrusionNOTZMesh = meshCreate(cube::vertexPos, cube::indices, protrusionNOTZ::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+
+    // Set up transformation matrices for protrusions
+    sScene.protrusionXMatrix = protrusionX::trans * protrusionX::scale;
+    sScene.protrusionNOTXMatrix = protrusionNOTX::trans * protrusionNOTX::scale;
+    sScene.protrusionYMatrix = protrusionY::trans * protrusionY::scale;
+    sScene.protrusionNOTYMatrix = protrusionNOTY::trans * protrusionNOTY::scale;
+    sScene.protrusionZMatrix = protrusionZ::trans * protrusionZ::scale;
+    sScene.protrusionNOTZMatrix = protrusionNOTZ::trans * protrusionNOTZ::scale;
 
     /* setup transformation matrices for objects */
     sScene.flagModelMatrix = flagPlane::trans;
@@ -200,6 +276,35 @@ void sceneDraw()
         shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.cubeScalingMatrix);
         glBindVertexArray(sScene.cubeMesh.vao);
         glDrawElements(GL_TRIANGLES, sScene.cubeMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw protrusion along X-axis
+        shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.protrusionXMatrix);
+        glBindVertexArray(sScene.protrusionXMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.protrusionXMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.protrusionNOTXMatrix);
+        glBindVertexArray(sScene.protrusionNOTXMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.protrusionNOTXMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+
+        // Draw protrusion along Y-axis
+        shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.protrusionYMatrix);
+        glBindVertexArray(sScene.protrusionYMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.protrusionYMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.protrusionNOTYMatrix);
+        glBindVertexArray(sScene.protrusionNOTYMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.protrusionNOTYMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+
+        // Draw protrusion along Z-axis
+        shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.protrusionZMatrix);
+        glBindVertexArray(sScene.protrusionZMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.protrusionZMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.protrusionNOTZMatrix);
+        glBindVertexArray(sScene.protrusionNOTZMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.protrusionNOTZMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
     }
     glCheckError();
 
@@ -259,6 +364,12 @@ int main(int argc, char **argv)
     shaderDelete(sScene.shaderColor);
     flagDelete(sScene.flag);
     meshDelete(sScene.cubeMesh);
+    meshDelete(sScene.protrusionXMesh);
+    meshDelete(sScene.protrusionNOTXMesh);
+    meshDelete(sScene.protrusionYMesh);
+    meshDelete(sScene.protrusionNOTYMesh);
+    meshDelete(sScene.protrusionZMesh);
+    meshDelete(sScene.protrusionNOTZMesh);
 
     /* cleanup glfw/glcontext */
     windowDelete(window);

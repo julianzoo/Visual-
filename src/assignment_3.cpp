@@ -13,6 +13,7 @@ namespace flagPlane
 {
     const Vector4D color = { 0.96f, 0.57f, 0.0f, 1.0f };
     const Matrix4D trans = Matrix4D::identity();
+    // Matrix4D flagScale = Matrix4D::scale(10.5f, 0.5f, 0.5f);
 }
 
 /* translation and scale for the scaled cube */
@@ -66,6 +67,55 @@ namespace protrusionNOTZ
     const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
 }
 
+// Plane parts
+namespace planeBody{
+    const Vector4D color = {0.5f, 0.0f, 0.0f, 1.0f};
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
+    const Matrix4D scale = Matrix4D::scale(4.0f, 1.0f, 1.0f);
+}
+
+namespace planeCockpit{
+    const Vector4D color = {0.0f, 0.0f, 1.0f, 1.0f};
+    const Matrix4D trans = Matrix4D::translation(Vector3D (1.75f, 1.3f, -7.0f));
+    const Matrix4D scale = Matrix4D::scale(1.5f, 0.4f, 1.0f);
+}
+
+namespace planeWing
+{
+    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
+    const Matrix4D scale = Matrix4D::scale(1.0f, 0.2f, 6.0f); // Wide wing
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
+}
+
+namespace planeTailWing
+{
+    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
+    const Matrix4D scale = Matrix4D::scale(0.5f, -0.1f, 2.0f);
+    const Matrix4D trans = Matrix4D::translation(Vector3D(-3.5f, 0.5f, -7.0f));
+}
+
+namespace planeRudder
+{
+    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
+    const Matrix4D scale = Matrix4D::scale(0.1f, 1.0f, 1.0f);
+    const Matrix4D trans = Matrix4D::translation(Vector3D(-4.0f, 1.0f, -7.0f));
+    const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
+}
+
+namespace planePropeller
+{
+    const Vector4D color = {0.3f, 0.3f, 0.3f, 1.0f};
+    const Matrix4D scale = Matrix4D::scale(0.1f, 2.0f, 0.1f);
+    const Matrix4D trans = Matrix4D::translation(Vector3D(4.1f, 0.0f, -7.0f));
+}
+
+namespace planePole
+{
+    const Vector4D color = {0.5f, 0.5f, 0.5f, 1.0f};
+    const Matrix4D scale = Matrix4D::scale(0.1f, 0.1f, 2.0f);
+    const Matrix4D trans = Matrix4D::translation(Vector3D(-4.5f, 0.0f, -7.0f));
+    const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
+}
 
 /* struct holding all necessary state variables for scene */
 struct
@@ -103,6 +153,27 @@ struct
     Matrix4D protrusionNOTYMatrix;
     Matrix4D protrusionZMatrix;
     Matrix4D protrusionNOTZMatrix;
+
+    // Meshes for plane parts
+    Mesh bodyMesh;
+    Mesh cockpitMesh;
+    Mesh wingMesh;
+    Mesh tailWingMesh;
+    Mesh rudderMesh;
+    Mesh propellerMesh;
+    Mesh poleMesh;
+
+    // Transformation matrices for plane parts
+    Matrix4D bodyMatrix;
+    Matrix4D cockpitMatrix;
+    Matrix4D wingMatrix;
+    Matrix4D tailWingMatrix;
+    Matrix4D rudderMatrix;
+    Matrix4D propellerMatrix;
+    Matrix4D poleMatrix;
+
+    Matrix4D planeTransformationMatrix = Matrix4D::identity();
+    float propellerRotationAngle = 0.0f;
 } sScene;
 
 /* struct holding all state variables for input */
@@ -214,8 +285,26 @@ void sceneInit(float width, float height)
     sScene.protrusionZMatrix = protrusionZ::trans * protrusionZ::scale;
     sScene.protrusionNOTZMatrix = protrusionNOTZ::trans * protrusionNOTZ::scale;
 
+     // Create meshes for plane parts
+    sScene.bodyMesh = meshCreate(cube::vertexPos, cube::indices, planeBody::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.cockpitMesh = meshCreate(cube::vertexPos, cube::indices, planeCockpit::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.wingMesh = meshCreate(cube::vertexPos, cube::indices, planeWing::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.tailWingMesh = meshCreate(cube::vertexPos, cube::indices, planeTailWing::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.rudderMesh = meshCreate(cube::vertexPos, cube::indices, planeRudder::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.propellerMesh = meshCreate(cube::vertexPos, cube::indices, planePropeller::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+    sScene.poleMesh = meshCreate(cube::vertexPos, cube::indices, planePole::color, GL_STATIC_DRAW, GL_STATIC_DRAW);
+
+    // Set up transformation matrices
+    sScene.bodyMatrix = planeBody::trans * planeBody::scale;
+    sScene.cockpitMatrix = planeCockpit::trans * planeCockpit::scale;
+    sScene.wingMatrix = planeWing::trans * planeWing::scale;
+    sScene.tailWingMatrix = planeTailWing::trans * planeTailWing::scale;
+    sScene.rudderMatrix = planeRudder::trans * planeRudder::rot * planeRudder::scale;
+    sScene.propellerMatrix = planePropeller::trans * planePropeller::scale;
+    sScene.poleMatrix = planePole::trans * planePole::rot * planePole::scale;
+
     /* setup transformation matrices for objects */
-    sScene.flagModelMatrix = flagPlane::trans;
+    sScene.flagModelMatrix = Matrix4D::translation(Vector3D(0.0f, 0.0f, 0.0f)) * Matrix4D::rotationY(static_cast<float>(M_PI) / 4) /** flagPlane::flagScale*/; // Rotate flag 45 degrees
 
     sScene.cubeScalingMatrix = scaledCube::scale;
     sScene.cubeTranslationMatrix = scaledCube::trans;
@@ -249,8 +338,19 @@ void sceneUpdate(float dt)
 
     /* udpate cube transformation matrix to include new rotation if one of the keys was pressed */
     if (rotationDirX != 0 || rotationDirY != 0) {
+        sScene.planeTransformationMatrix = Matrix4D::rotationY(rotationDirY * sScene.cubeSpinRadPerSecond * dt) * Matrix4D::rotationX(rotationDirX * sScene.cubeSpinRadPerSecond * dt) * sScene.planeTransformationMatrix;
         sScene.cubeTransformationMatrix = Matrix4D::rotationY(rotationDirY * sScene.cubeSpinRadPerSecond * dt) * Matrix4D::rotationX(rotationDirX * sScene.cubeSpinRadPerSecond * dt) * sScene.cubeTransformationMatrix;
     }
+
+    /* Propeller rotation update */
+    float propellerSpeed = 360.0f;
+    sScene.propellerRotationAngle += propellerSpeed * dt;
+
+    sScene.propellerMatrix = 
+        planePropeller::trans * 
+        Matrix4D::rotationX(to_radians(sScene.propellerRotationAngle))
+         * planePropeller::scale;
+    //sScene.propellerMatrix = sScene.propellerMatrix * Matrix4D::rotationX(5.0f *dt); // rotate propeller continuously
 }
 
 /* function to draw all objects in the scene */
@@ -268,7 +368,7 @@ void sceneDraw()
         shaderUniform(sScene.shaderColor, "uView", cameraView(sScene.camera));
 
         /* draw flag */
-        shaderUniform(sScene.shaderColor, "uModel", sScene.flagModelMatrix);
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.poleMatrix * sScene.flagModelMatrix);
         glBindVertexArray(sScene.flag.mesh.vao);
         glDrawElements(GL_TRIANGLES, sScene.flag.mesh.size_ibo, GL_UNSIGNED_INT, nullptr);
 
@@ -305,6 +405,41 @@ void sceneDraw()
         shaderUniform(sScene.shaderColor, "uModel", sScene.cubeTranslationMatrix * sScene.cubeTransformationMatrix * sScene.protrusionNOTZMatrix);
         glBindVertexArray(sScene.protrusionNOTZMesh.vao);
         glDrawElements(GL_TRIANGLES, sScene.protrusionNOTZMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw plane body
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.bodyMatrix);
+        glBindVertexArray(sScene.bodyMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.bodyMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw cockpit
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.cockpitMatrix);
+        glBindVertexArray(sScene.cockpitMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.cockpitMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw wing
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.wingMatrix);
+        glBindVertexArray(sScene.wingMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.wingMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw tail wing
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.tailWingMatrix);
+        glBindVertexArray(sScene.tailWingMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.tailWingMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw rudder
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.rudderMatrix);
+        glBindVertexArray(sScene.rudderMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.rudderMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw propeller
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.propellerMatrix);
+        glBindVertexArray(sScene.propellerMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.propellerMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
+
+        // Draw pole
+        shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.poleMatrix);
+        glBindVertexArray(sScene.poleMesh.vao);
+        glDrawElements(GL_TRIANGLES, sScene.poleMesh.size_ibo, GL_UNSIGNED_INT, nullptr);
     }
     glCheckError();
 
@@ -370,6 +505,15 @@ int main(int argc, char **argv)
     meshDelete(sScene.protrusionNOTYMesh);
     meshDelete(sScene.protrusionZMesh);
     meshDelete(sScene.protrusionNOTZMesh);
+    shaderDelete(sScene.shaderColor);
+    flagDelete(sScene.flag);
+    meshDelete(sScene.bodyMesh);
+    meshDelete(sScene.cockpitMesh);
+    meshDelete(sScene.wingMesh);
+    meshDelete(sScene.tailWingMesh);
+    meshDelete(sScene.rudderMesh);
+    meshDelete(sScene.propellerMesh);
+    meshDelete(sScene.poleMesh);
 
     /* cleanup glfw/glcontext */
     windowDelete(window);

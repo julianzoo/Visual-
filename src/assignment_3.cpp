@@ -5,117 +5,8 @@
 #include "mygl/mesh.h"
 #include "mygl/geometry.h"
 #include "mygl/camera.h"
-
+#include "TransformsAndColors.h" // TODO: moved definition of various objects to new Header File
 #include <flag.h>
-
-/* translation and color for the flag plane */
-namespace flagPlane
-{
-    const Vector4D color = { 0.96f, 0.57f, 0.0f, 1.0f };
-    const Matrix4D trans = Matrix4D::identity();
-    // Matrix4D flagScale = Matrix4D::scale(10.5f, 0.5f, 0.5f);
-}
-
-/* translation and scale for the scaled cube */
-namespace scaledCube
-{
-    const Vector4D color = {0.55f, 0.27f, 0.07f, 1.0f}; // Brown (Earth)
-    const Matrix4D scale = Matrix4D::scale(2.0f, 2.0f, 2.0f);
-    const Matrix4D trans = Matrix4D::identity();
-}
-
-// Create namespaces for protrusions
-namespace protrusionX
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (2.0f, 0.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionNOTX
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (-2.0f, 0.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionY
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 2.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionNOTY
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, -2.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionZ
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, 2.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionNOTZ
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -2.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-// Plane parts
-namespace planeBody{
-    const Vector4D color = {0.5f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 0.25f, 0.25f);
-}
-
-namespace planeCockpit{
-    const Vector4D color = {0.0f, 0.0f, 1.0f, 1.0f};
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.4f, 0.35f, -7.0f));
-    const Matrix4D scale = Matrix4D::scale(0.375f, 0.1f, 0.25f);
-}
-
-namespace planeWing
-{
-    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.25f, 0.05f, 1.5f); // Wide wing
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
-}
-
-namespace planeTailWing
-{
-    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.125f, -0.025f, 0.5f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.125f, -7.0f));
-}
-
-namespace planeRudder
-{
-    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.025f, 0.25f, 0.25f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.35f, -7.0f));
-    const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
-}
-
-namespace planePropeller
-{
-    const Vector4D color = {0.3f, 0.3f, 0.3f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.025f, 0.5f, 0.025f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(1.025f, 0.0f, -7.0f));
-}
-
-namespace planePole
-{
-    const Vector4D color = {0.5f, 0.5f, 0.5f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.025f, 0.025f, 0.5f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.125f, 0.0f, -7.0f));
-    const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
-}
 
 /* struct holding all necessary state variables for scene */
 struct
@@ -175,11 +66,10 @@ struct
     Matrix4D planeTransformationMatrix = Matrix4D::identity();
     float propellerRotationAngle = 0.0f;
 
-
     // Variables for the plane orbit
     float planeOrbitAngle = 0.0f;        // Current orbit angle
-    float planeOrbitSpeed = 1.0f;        // Orbital speed (radians per second)
-    float planeOrbitRadius = 10.0f;      // Orbital radius
+    float planeOrbitSpeed = 0.2f;        // Orbital speed (radians per second)
+    float planeOrbitRadius = 14.0f;      // Orbital radius
 
     Vector3D orbitCenter = Vector3D(0.0f, 0.0f, 0.0f);
 } sScene;
@@ -336,7 +226,7 @@ void sceneUpdate(float dt)
         rotationDirX = -1;
     }
 
-    /* if 'a' or 'd' pressed, cube should rotate around y axis */
+    /* if 'a' or 'd' pressed, cube should rotate around y-axis */
     int rotationDirY = 0;
     if (sInput.keyPressed[2]) {
         rotationDirY = 1;
@@ -354,8 +244,8 @@ void sceneUpdate(float dt)
     float propellerSpeed = 360.0f;
     sScene.propellerRotationAngle += propellerSpeed * dt;
 
-    sScene.propellerMatrix = 
-        planePropeller::trans * 
+    sScene.propellerMatrix =
+        planePropeller::trans *
         Matrix4D::rotationX(to_radians(sScene.propellerRotationAngle))
          * planePropeller::scale;
     //sScene.propellerMatrix = sScene.propellerMatrix * Matrix4D::rotationX(5.0f *dt); // rotate propeller continuously
@@ -371,20 +261,20 @@ void sceneUpdate(float dt)
 
     // Calculate the new position of the aircraft using polar coordinates
     float x = sScene.orbitCenter.x + sScene.planeOrbitRadius * cos(sScene.planeOrbitAngle);
-    //float y = sScene.orbitCenter.y + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle);
+    float y = sScene.orbitCenter.y + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle); // -> leads to a upwards spiral movement
     float z = sScene.orbitCenter.z + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle);
 
     // Updating the aircraft transformation matrix
     sScene.planeTransformationMatrix = Matrix4D::translation(Vector3D(x, 0.0f, z));
 
     // turn the plane in the direction of movement
-    float angleOfMotion = sScene.planeOrbitAngle;
-
+    float angleOfMotion = sScene.planeOrbitAngle + M_PI_2; // TODO: added direction change
     sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationY(-angleOfMotion);
+    // Rotate the plane to have its belly face towards the center of the orbit by adjusting the pitch (around the X-axis)
+    sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(-M_PI / 2);
 
     // rotation of the plane to the planet side
-    //sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(static_cast<float>(M_PI) / -2.0f);
-
+    // sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(static_cast<float>(M_PI) / -2.0f);
 }
 
 /* function to draw all objects in the scene */

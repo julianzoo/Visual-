@@ -72,13 +72,13 @@ namespace protrusionNOTZ
 // Plane parts
 namespace planeBody{
     const Vector4D color = {0.5f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, 0.0f));
     const Matrix4D scale = Matrix4D::scale(1.0f, 0.25f, 0.25f);
 }
 
 namespace planeCockpit{
     const Vector4D color = {0.0f, 0.0f, 1.0f, 1.0f};
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.4f, 0.35f, -7.0f));
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.4f, 0.35f, 0.0f));
     const Matrix4D scale = Matrix4D::scale(0.375f, 0.1f, 0.25f);
 }
 
@@ -86,21 +86,21 @@ namespace planeWing
 {
     const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
     const Matrix4D scale = Matrix4D::scale(0.25f, 0.05f, 1.5f); // Wide wing
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
+    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, 0.0f));
 }
 
 namespace planeTailWing
 {
     const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
     const Matrix4D scale = Matrix4D::scale(0.125f, -0.025f, 0.5f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.125f, -7.0f));
+    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.125f, 0.0f));
 }
 
 namespace planeRudder
 {
     const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
     const Matrix4D scale = Matrix4D::scale(0.025f, 0.25f, 0.25f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.35f, -7.0f));
+    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.35f, 0.0f));
     const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
 }
 
@@ -108,14 +108,14 @@ namespace planePropeller
 {
     const Vector4D color = {0.3f, 0.3f, 0.3f, 1.0f};
     const Matrix4D scale = Matrix4D::scale(0.025f, 0.5f, 0.025f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(1.025f, 0.0f, -7.0f));
+    const Matrix4D trans = Matrix4D::translation(Vector3D(1.025f, 0.0f, 0.0f));
 }
 
 namespace planePole
 {
     const Vector4D color = {0.5f, 0.5f, 0.5f, 1.0f};
     const Matrix4D scale = Matrix4D::scale(0.025f, 0.025f, 0.5f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.125f, 0.0f, -7.0f));
+    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.125f, 0.0f, 0.0f));
     const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
 }
 

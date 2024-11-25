@@ -5,123 +5,22 @@
 #include "mygl/mesh.h"
 #include "mygl/geometry.h"
 #include "mygl/camera.h"
-
+#include "TransformsAndColors.h" // TODO: moved definition of various objects to new Header File
 #include <flag.h>
 
-/* translation and color for the flag plane */
-namespace flagPlane
-{
-    const Vector4D color = { 0.96f, 0.57f, 0.0f, 1.0f };
-    const Matrix4D trans = Matrix4D::identity();
-    // Matrix4D flagScale = Matrix4D::scale(10.5f, 0.5f, 0.5f);
-}
-
-/* translation and scale for the scaled cube */
-namespace scaledCube
-{
-    const Vector4D color = {0.55f, 0.27f, 0.07f, 1.0f}; // Brown (Earth)
-    const Matrix4D scale = Matrix4D::scale(2.0f, 2.0f, 2.0f);
-    const Matrix4D trans = Matrix4D::identity();
-}
-
-// Create namespaces for protrusions
-namespace protrusionX
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (2.0f, 0.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionNOTX
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (-2.0f, 0.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionY
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 2.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionNOTY
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, -2.0f, 0.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionZ
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, 2.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-namespace protrusionNOTZ
-{
-    const Vector4D color = {0.0f, 1.0f, 0.0f, 1.0f}; // Green color
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -2.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 1.0f, 1.0f);
-}
-
-// Plane parts
-namespace planeBody{
-    const Vector4D color = {0.5f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
-    const Matrix4D scale = Matrix4D::scale(1.0f, 0.25f, 0.25f);
-}
-
-namespace planeCockpit{
-    const Vector4D color = {0.0f, 0.0f, 1.0f, 1.0f};
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.4f, 0.35f, -7.0f));
-    const Matrix4D scale = Matrix4D::scale(0.375f, 0.1f, 0.25f);
-}
-
-namespace planeWing
-{
-    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.25f, 0.05f, 1.5f); // Wide wing
-    const Matrix4D trans = Matrix4D::translation(Vector3D (0.0f, 0.0f, -7.0f));
-}
-
-namespace planeTailWing
-{
-    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.125f, -0.025f, 0.5f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.125f, -7.0f));
-}
-
-namespace planeRudder
-{
-    const Vector4D color = {1.0f, 0.0f, 0.0f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.025f, 0.25f, 0.25f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.0f, 0.35f, -7.0f));
-    const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
-}
-
-namespace planePropeller
-{
-    const Vector4D color = {0.3f, 0.3f, 0.3f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.025f, 0.5f, 0.025f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(1.025f, 0.0f, -7.0f));
-}
-
-namespace planePole
-{
-    const Vector4D color = {0.5f, 0.5f, 0.5f, 1.0f};
-    const Matrix4D scale = Matrix4D::scale(0.025f, 0.025f, 0.5f);
-    const Matrix4D trans = Matrix4D::translation(Vector3D(-1.125f, 0.0f, -7.0f));
-    const Matrix4D rot = Matrix4D::rotationY(static_cast<float>(M_PI) / 2.0f);
-}
+enum CameraMode {
+    STATIC,
+    THIRD_PERSON
+};
 
 /* struct holding all necessary state variables for scene */
 struct
 {
     /* camera */
-    Camera camera;
+    Camera camera1;  // Main camera
+    Camera camera2;  // Third-person camera
+    Camera* activeCamera;  // Pointer to currently active camera
+    CameraMode cameraMode = STATIC; // Added CameraMode for switching between centered camera and Plane-perspective camera (3rd person)
     float zoomSpeedMultiplier;
 
     /* cube mesh and transformations */
@@ -175,11 +74,10 @@ struct
     Matrix4D planeTransformationMatrix = Matrix4D::identity();
     float propellerRotationAngle = 0.0f;
 
-
     // Variables for the plane orbit
     float planeOrbitAngle = 0.0f;        // Current orbit angle
-    float planeOrbitSpeed = 1.0f;        // Orbital speed (radians per second)
-    float planeOrbitRadius = 10.0f;      // Orbital radius
+    float planeOrbitSpeed = 0.2f;        // Orbital speed (radians per second)
+    float planeOrbitRadius = 14.0f;      // Orbital radius
 
     Vector3D orbitCenter = Vector3D(0.0f, 0.0f, 0.0f);
 } sScene;
@@ -189,8 +87,13 @@ struct
 {
     bool mouseLeftButtonPressed = false;
     Vector2D mousePressStart;
-    bool keyPressed[4] = {false, false, false, false};
+    bool keyPressed[8] = {false, false, false, false, false, false, false, false};
 } sInput;
+
+// Added function to extract Coordinates from the transformation matrix (row-major matrix form)
+Vector3D extractPosition(const Matrix4D& matrix) {
+    return Vector3D(matrix[3][0], matrix[3][1], matrix[3][2]);
+}
 
 /* GLFW callback function for keyboard events */
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -207,24 +110,44 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
         screenshotToPNG("screenshot.png");
     }
 
-    /* input for cube control */
-    if (key == GLFW_KEY_W)
+    /// Input for Steering
+    if (key == GLFW_KEY_W) // acceleration
     {
         sInput.keyPressed[0] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
-    if (key == GLFW_KEY_S)
+    if (key == GLFW_KEY_S) // deceleration
     {
         sInput.keyPressed[1] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
-
-    if (key == GLFW_KEY_A)
+    if (key == GLFW_KEY_A) // left turn: combination of yaw (rotation aroung y-axis) and roll (rotation around x-axis)
     {
         sInput.keyPressed[2] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
-    if (key == GLFW_KEY_D)
+    if (key == GLFW_KEY_D) // right turn: combination of yaw (rotation aroung y-axis) and roll (rotation around x-axis)
     {
         sInput.keyPressed[3] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
+    if (key == GLFW_KEY_LEFT_CONTROL) {
+        sInput.keyPressed[6] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
+    if (key == GLFW_KEY_SPACE) {
+        sInput.keyPressed[7] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
+
+    // Input for Camera-Mode:
+    if (key == GLFW_KEY_1) {
+        sInput.keyPressed[4] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+        sScene.cameraMode = STATIC;
+        sScene.activeCamera = &sScene.camera1;
+    }
+    if (key == GLFW_KEY_2) {
+        sInput.keyPressed[5] = (action == GLFW_PRESS);
+        if (action == GLFW_PRESS) {
+            sScene.cameraMode = THIRD_PERSON;
+            sScene.activeCamera = &sScene.camera2;
+        }
+    }
+
 }
 
 /* GLFW callback function for mouse position events */
@@ -234,7 +157,7 @@ void mousePosCallback(GLFWwindow *window, double x, double y)
     if (sInput.mouseLeftButtonPressed)
     {
         Vector2D diff = sInput.mousePressStart - Vector2D(static_cast<float>(x), static_cast<float>(y));
-        cameraUpdateOrbit(sScene.camera, diff, 0.0f);
+        cameraUpdateOrbit(*sScene.activeCamera, diff, 0.0f);
         sInput.mousePressStart = Vector2D(static_cast<float>(x), static_cast<float>(y));
     }
 }
@@ -255,22 +178,27 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 /* GLFW callback function for mouse scroll events */
 void mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    cameraUpdateOrbit(sScene.camera, {0, 0}, -sScene.zoomSpeedMultiplier * static_cast<float>(yoffset));
+    cameraUpdateOrbit(*sScene.activeCamera, {0, 0}, -sScene.zoomSpeedMultiplier * static_cast<float>(yoffset));
 }
 
 /* GLFW callback function for window resize event */
 void windowResizeCallback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    sScene.camera.width = static_cast<float>(width);
-    sScene.camera.height = static_cast<float>(height);
+    (*sScene.activeCamera).width = static_cast<float>(width);
+    (*sScene.activeCamera).height = static_cast<float>(height);
 }
 
-/* function to setup and initialize the whole scene */
+/* function to set up and initialize the whole scene */
 void sceneInit(float width, float height)
 {
     /* initialize camera */
-    sScene.camera = cameraCreate(width, height, BASE_FOV, 0.01f, 500.0f, {10.0f, 10.0f, 10.0f}, {0.0f, 0.0f, 0.0f});
+    sScene.camera1 = cameraCreate(width, height, BASE_FOV, 0.01f, 500.0f, {10.0f, 10.0f, 30.0f}, {0.0f, 0.0f, 0.0f});
+    Vector3D planeStartPosition = extractPosition(sScene.planeTransformationMatrix);
+    Vector3D cameraOffset = {planeStartPosition.x, planeStartPosition.y + 10.0f, planeStartPosition.z - 5.0f};
+    // Adding offset to the InitPos based on planeStartPosition to achieve 3rd-person view
+    sScene.camera2 = cameraCreate(width, height, BASE_FOV,0.01f, 500.0f, planeStartPosition + cameraOffset, planeStartPosition);
+    sScene.activeCamera = &sScene.camera1;
     sScene.zoomSpeedMultiplier = 0.05f;
 
     /* setup objects in scene and create opengl buffers for meshes */
@@ -328,34 +256,21 @@ void sceneInit(float width, float height)
 /* function to move and update objects in scene (e.g., rotate cube according to user input) */
 void sceneUpdate(float dt)
 {
-    /* if 'w' or 's' pressed, cube should rotate around x axis */
-    int rotationDirX = 0;
-    if (sInput.keyPressed[0]) {
-        rotationDirX = 1;
-    } else if (sInput.keyPressed[1]) {
-        rotationDirX = -1;
-    }
+    Vector3D planePosition = extractPosition(sScene.planeTransformationMatrix);
 
-    /* if 'a' or 'd' pressed, cube should rotate around y axis */
-    int rotationDirY = 0;
-    if (sInput.keyPressed[2]) {
-        rotationDirY = 1;
-    } else if (sInput.keyPressed[3]) {
-        rotationDirY = -1;
-    }
-
-    /* udpate cube transformation matrix to include new rotation if one of the keys was pressed */
-    if (rotationDirX != 0 || rotationDirY != 0) {
-        sScene.planeTransformationMatrix = Matrix4D::rotationY(rotationDirY * sScene.cubeSpinRadPerSecond * dt) * Matrix4D::rotationX(rotationDirX * sScene.cubeSpinRadPerSecond * dt) * sScene.planeTransformationMatrix;
-        sScene.cubeTransformationMatrix = Matrix4D::rotationY(rotationDirY * sScene.cubeSpinRadPerSecond * dt) * Matrix4D::rotationX(rotationDirX * sScene.cubeSpinRadPerSecond * dt) * sScene.cubeTransformationMatrix;
+    // Update Camera
+    if (sScene.cameraMode == THIRD_PERSON) {
+        Vector3D cameraOffset = {0.0f, 3.0f, -10.0f};// transition the camera
+        // Adjust the camera to look in the direction the plane is moving
+        Vector3D directionOfMotion = normalize(planePosition - sScene.activeCamera->position); // Normalizing to preserve the direction of the vector
+        cameraFollow(*sScene.activeCamera, planePosition + directionOfMotion * M_PI_2); //
     }
 
     /* Propeller rotation update */
     float propellerSpeed = 360.0f;
     sScene.propellerRotationAngle += propellerSpeed * dt;
-
-    sScene.propellerMatrix = 
-        planePropeller::trans * 
+    sScene.propellerMatrix =
+        planePropeller::trans *
         Matrix4D::rotationX(to_radians(sScene.propellerRotationAngle))
          * planePropeller::scale;
     //sScene.propellerMatrix = sScene.propellerMatrix * Matrix4D::rotationX(5.0f *dt); // rotate propeller continuously
@@ -363,29 +278,27 @@ void sceneUpdate(float dt)
     // Updating the plane's orbit angle
     sScene.planeOrbitAngle += sScene.planeOrbitSpeed * dt;
 
-    // the angle stays between 0 and 2π
+    // Regulating angle between 0 and 2π
     if (sScene.planeOrbitAngle > 2.0f * M_PI)
     {
         sScene.planeOrbitAngle -= 2.0f * M_PI;
     }
 
-    // Calculate the new position of the aircraft using polar coordinates
+    // Calculate the new position of the aircraft using polar coordinates;
     float x = sScene.orbitCenter.x + sScene.planeOrbitRadius * cos(sScene.planeOrbitAngle);
-    //float y = sScene.orbitCenter.y + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle);
+    float y = sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle); // -> leads to an upwards spiral movement
     float z = sScene.orbitCenter.z + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle);
 
     // Updating the aircraft transformation matrix
     sScene.planeTransformationMatrix = Matrix4D::translation(Vector3D(x, 0.0f, z));
 
     // turn the plane in the direction of movement
-    float angleOfMotion = sScene.planeOrbitAngle;
-
-    sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationY(-angleOfMotion);
-
-    // rotation of the plane to the planet side
-    //sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(static_cast<float>(M_PI) / -2.0f);
-
+    float angleOfMotion = sScene.planeOrbitAngle + M_PI_2;
+    sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationY(-angleOfMotion); // Added rotation on the y-axis to let the plane's belly face the planet
+    // And: rotate the plane to have its belly face towards the center of the orbit by adjusting the pitch (around the X-axis)
+    sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(-M_PI_2); // for reference: positive M_PI_2 would let the belly of the plane face the outer world!
 }
+
 
 /* function to draw all objects in the scene */
 void sceneDraw()
@@ -398,8 +311,9 @@ void sceneDraw()
     /* use shader and set the uniforms (names match the ones in the shader) */
     {
         glUseProgram(sScene.shaderColor.id);
-        shaderUniform(sScene.shaderColor, "uProj", cameraProjection(sScene.camera));
-        shaderUniform(sScene.shaderColor, "uView", cameraView(sScene.camera));
+
+        shaderUniform(sScene.shaderColor, "uProj", cameraProjection(*sScene.activeCamera)); // Pass the active camera currently pointed to
+        shaderUniform(sScene.shaderColor, "uView", cameraView(*sScene.activeCamera));
 
         /* draw flag */
         shaderUniform(sScene.shaderColor, "uModel", sScene.planeTransformationMatrix * sScene.poleMatrix * sScene.flagModelMatrix);

@@ -68,7 +68,9 @@ source_group(TREE  ${CMAKE_CURRENT_SOURCE_DIR}
              FILES ${SRC} ${HDR} ${SHADER})
 
 add_executable(assignment_03 ${SRC} ${HDR} ${SHADER}
-        src/assignment_3.cpp)
+        src/assignment_3.cpp
+        src/TransformsAndColors.h
+)
 target_link_libraries(assignment_03 OpenGL::GL glfw glad stb_image)
 target_include_directories(assignment_03 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 target_compile_features(assignment_03 PUBLIC cxx_std_17)

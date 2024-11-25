@@ -72,6 +72,13 @@ struct
     Matrix4D poleMatrix;
 
     Matrix4D planeTransformationMatrix = Matrix4D::identity();
+    Vector3D planePosition;
+
+    // Plane Steering angles
+    float pitchAngle;
+    float rollAngle;
+    float yawAngle;
+
     float propellerRotationAngle = 0.0f;
 
     // Variables for the plane orbit
@@ -253,40 +260,121 @@ void sceneInit(float width, float height)
     sScene.shaderColor = shaderLoad("shader/default.vert", "shader/default.frag");
 }
 
+Matrix4D lookAt(const Vector3D& eye, const Vector3D& target, const Vector3D& up) {
+    Vector3D z = normalize(eye - target); // Forward vector
+    Vector3D x = normalize(cross(up, z)); // Right vector
+    Vector3D y = normalize(cross(z, x)); // Up vector
+
+    // Create a view matrix
+    Matrix4D view = Matrix4D(
+        x.x, x.y, x.z, -dot(x, eye),
+        y.x, y.y, y.z, -dot(y, eye),
+        z.x, z.y, z.z, -dot(z, eye),
+        0, 0, 0, 1
+    );
+
+    return view;
+}
+
+void steeringHelperFunction(float dt, float rollSpeed, float pitchSpeed, float yawSpeed)
+{
+    // Acceleration
+    if (sInput.keyPressed[0]) { // w - Increase speed
+        sScene.planeOrbitSpeed += 0.01f;
+        // sInput.keyPressed[0] = false; // acceleration works less smooth and a bit delayed if keyPressed-field is set to false again
+    }
+    if (sInput.keyPressed[1]) { // s - Decrease speed
+        sScene.planeOrbitSpeed = std::max(0.1f, sScene.planeOrbitSpeed - 0.02f); // keep a minimum orbital speed!
+        // sInput.keyPressed[1] = false;
+    }
+
+    // Steering: Taking the difference of the keyPressed boolean entries, leading to 0 or 1, implements an effective change in motion
+    float rollChange = (sInput.keyPressed[3] - sInput.keyPressed[2]) * rollSpeed * dt; // Left/Right roll 'a' 'd'; combining roll & yaw movements
+    float yawChange = (sInput.keyPressed[3] - sInput.keyPressed[2]) * yawSpeed * dt;
+
+    float pitchChange = (sInput.keyPressed[7] - sInput.keyPressed[6]) * pitchSpeed * dt; // Up/Down pitch 'CONTROL_LEFT' or 'SPACE'
+
+    sScene.pitchAngle += pitchChange;
+    sScene.rollAngle += rollChange;
+    sScene.yawAngle += yawChange;
+}
+
+void updatePlanePosition(float dt)
+{
+    /* Yaw = Rotation around the y-axis
+    *  Pitch = Rotation around x-Axis
+    *  Roll = Rotation around z-axis */
+    Matrix4D rotationMatrix = Matrix4D::rotationX(sScene.pitchAngle) * Matrix4D::rotationY(sScene.yawAngle) * Matrix4D::rotationZ(sScene.rollAngle);
+
+    // Forward direction in local space (initial forward along z-axis?) -> Critical Point of plane motion
+    Vector3D forwardDirection = rotationMatrix * sScene.planeOrbitAngle;
+
+    // Updates plane position based on forward direction and speed
+    sScene.planePosition += forwardDirection * sScene.planeOrbitSpeed * dt;
+
+    // Update the plane's orbital angle and position
+    sScene.planeOrbitAngle += sScene.planeOrbitSpeed * dt;
+    if (sScene.planeOrbitAngle > 2.0f * M_PI) { // Ensure the angle stays within 0 to 2π
+        sScene.planeOrbitAngle -= 2.0f * M_PI;
+    }
+    sScene.planePosition.x = sScene.orbitCenter.x + sScene.planeOrbitRadius * cos(sScene.planeOrbitAngle);
+    sScene.planePosition.y = sScene.orbitCenter.y + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle);
+    sScene.planePosition.z = sScene.orbitCenter.z + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle);
+}
+
+void updatePropeller(float dt, float propellerSpeed)
+{
+    sScene.propellerRotationAngle += propellerSpeed * dt;
+    sScene.propellerMatrix = planePropeller::trans * Matrix4D::rotationX(to_radians(sScene.propellerRotationAngle))  * planePropeller::scale;
+}
+
 /* function to move and update objects in scene (e.g., rotate cube according to user input) */
 void sceneUpdate(float dt)
 {
-    Vector3D planePosition = extractPosition(sScene.planeTransformationMatrix);
+    sScene.planePosition = extractPosition(sScene.planeTransformationMatrix);
 
     // Update Camera
     if (sScene.cameraMode == THIRD_PERSON) {
         Vector3D cameraOffset = {0.0f, 3.0f, -10.0f};// transition the camera
         // Adjust the camera to look in the direction the plane is moving
-        Vector3D directionOfMotion = normalize(planePosition - sScene.activeCamera->position); // Normalizing to preserve the direction of the vector
-        cameraFollow(*sScene.activeCamera, planePosition + directionOfMotion * M_PI_2); //
+        Vector3D directionOfMotion = normalize(sScene.planePosition - sScene.activeCamera->position); // Normalizing to preserve the direction of the vector
+        cameraFollow(*sScene.activeCamera, sScene.planePosition + directionOfMotion * M_PI_2); //
     }
 
-    /* Propeller rotation update */
-    float propellerSpeed = 360.0f;
-    sScene.propellerRotationAngle += propellerSpeed * dt;
-    sScene.propellerMatrix =
-        planePropeller::trans *
-        Matrix4D::rotationX(to_radians(sScene.propellerRotationAngle))
-         * planePropeller::scale;
-    //sScene.propellerMatrix = sScene.propellerMatrix * Matrix4D::rotationX(5.0f *dt); // rotate propeller continuously
+    const float rollSpeed = 0.5f; // degrees per second
+    const float pitchSpeed = 0.5f;
+    const float yawSpeed = 0.5f;
+    const float propellerSpeed = 360.0f; // degrees per second
 
-    // Updating the plane's orbit angle
-    sScene.planeOrbitAngle += sScene.planeOrbitSpeed * dt;
+    steeringHelperFunction(dt, rollSpeed, pitchSpeed, yawSpeed);
 
-    // Regulating angle between 0 and 2π
-    if (sScene.planeOrbitAngle > 2.0f * M_PI)
-    {
-        sScene.planeOrbitAngle -= 2.0f * M_PI;
-    }
+    // Update plane position based on movement
+    updatePlanePosition(dt);
 
+    // Update plane propeller
+    updatePropeller(dt, propellerSpeed);
+
+    // Combine transformations for the plane
+    Matrix4D rollMatrix = Matrix4D::rotationX(sScene.rollAngle);
+    Matrix4D pitchMatrix = Matrix4D::rotationY(sScene.pitchAngle);
+    // Matrix4D yawMatrix = Matrix4D::rotationY(sScene.yawAngle); // Yaw distorts the natural orbit movement look
+    // Apply transformations
+    sScene.planeTransformationMatrix = Matrix4D::translation(sScene.planePosition) * rollMatrix * pitchMatrix;
+
+    // rotation of the plane to the planet side
+    sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(static_cast<float>(M_PI) / -2.0f);
+
+
+    /* The following section whose begin is demarked by '// ___ ... ___ //' can be commented out for activating the steering functions above!
+    *  While steering the plane, the orbit is not anymore just limited to the xz-plane but also depends on y-axis.
+    *  When steering the plane does not align to the direction of motion. The plane's nose is rather fixed. This issue with using the direction vector for alignment remains unsolved unfortunately!
+    *  Therefor we provided you with the options to check the steering isolated from the main program.
+    *  In the main program, i.e. the program without commenting-out the following section, only the acceleration works properly, but the pitch, yaw and roll are not animated! */
+    // ____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________ //
+    // Comment-out Section Begin
     // Calculate the new position of the aircraft using polar coordinates;
     float x = sScene.orbitCenter.x + sScene.planeOrbitRadius * cos(sScene.planeOrbitAngle);
-    float y = sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle); // -> leads to an upwards spiral movement
+    // float y = sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle); // -> leads to an upwards spiral movement
     float z = sScene.orbitCenter.z + sScene.planeOrbitRadius * sin(sScene.planeOrbitAngle);
 
     // Updating the aircraft transformation matrix
@@ -297,8 +385,9 @@ void sceneUpdate(float dt)
     sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationY(-angleOfMotion); // Added rotation on the y-axis to let the plane's belly face the planet
     // And: rotate the plane to have its belly face towards the center of the orbit by adjusting the pitch (around the X-axis)
     sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(-M_PI_2); // for reference: positive M_PI_2 would let the belly of the plane face the outer world!
+    // Comment-out section End
+    // ____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________ //
 }
-
 
 /* function to draw all objects in the scene */
 void sceneDraw()

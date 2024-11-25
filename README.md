@@ -10,4 +10,4 @@ Here we develop code for the UIBK Bachelors seminar Visual Computing (WS2024/25)
 - 'a' and 'd' for steering the plane left and right (yaw and roll are combined)
 - 'w' and 's' for accelerating and decelerating, respectively 
 - 'ctrl' and 'space' for pitch down and up
-- '1' and '2' for selecting basic camera and additional third-person-camera
+- '1' and '2' for selecting basic camera and additional third-person-camera (more of a close-by camera, following the plane)

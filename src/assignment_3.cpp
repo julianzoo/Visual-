@@ -5,7 +5,7 @@
 #include "mygl/mesh.h"
 #include "mygl/geometry.h"
 #include "mygl/camera.h"
-#include "TransformsAndColors.h" // TODO: moved definition of various objects to new Header File
+#include "TransformsAndColors.h" // moved definition of various objects to new Header File
 #include <flag.h>
 
 enum CameraMode {
@@ -387,6 +387,7 @@ void sceneUpdate(float dt)
     sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(-M_PI_2); // for reference: positive M_PI_2 would let the belly of the plane face the outer world!
     // Comment-out section End
     // ____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________ //
+    flagAnimate(sScene.flag, sScene.flagSim, dt);
 }
 
 /* function to draw all objects in the scene */

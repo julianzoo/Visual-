@@ -335,7 +335,7 @@ void sceneUpdate(float dt)
 
     // Update Camera
     if (sScene.cameraMode == THIRD_PERSON) {
-        Vector3D cameraOffset = {0.0f, 3.0f, -10.0f};// transition the camera
+        // Vector3D cameraOffset = {0.0f, 3.0f, -10.0f}; // transition the camera -> Integration of the offset for 3rd-person-view not working
         // Adjust the camera to look in the direction the plane is moving
         Vector3D directionOfMotion = normalize(sScene.planePosition - sScene.activeCamera->position); // Normalizing to preserve the direction of the vector
         cameraFollow(*sScene.activeCamera, sScene.planePosition + directionOfMotion * M_PI_2); //

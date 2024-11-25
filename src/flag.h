@@ -18,7 +18,7 @@ struct FlagSim
      */
     WaveParams parameter[3] = {
         { 1.0f,  1.0f,  0.25f, normalize(Vector2D{0.0f,  1.0f}) },
-        { 0.2f,  1.5f, 0.75f,  normalize(Vector2D{0.0f, 1.0f}) },
+        { 1.2f,  1.5f, 0.75f,  normalize(Vector2D{0.0f, 1.0f}) },
         { 0.1f,  5.0f,  2.0f,  normalize(Vector2D{-1.0f / 3.0f, 1.0f}) },
     };
 
@@ -28,6 +28,8 @@ struct FlagSim
 struct Flag {
     Mesh mesh;
     std::vector<Vertex> vertices;
+    std::vector<Vector3D> initialPositions;
+
 };
 
 /**
@@ -46,6 +48,15 @@ struct Flag {
  *
  */
 Flag flagCreate(const Vector3D &color);
+
+/**
+ * @brief Animates the flag by computing the wave function.
+ *
+ * @param flag Flag to animate.
+ * @param flagSim Parameter for simulation like amplitude, frequency.
+ * @param deltaTime Time since last frame.
+ */
+void flagAnimate(Flag &flag, FlagSim &flagSim, float deltaTime);
 
 /**
  * @brief Cleanup and delete all OpenGL buffers of the flag mesh. Has to be called for each flag after it is not used anymore.

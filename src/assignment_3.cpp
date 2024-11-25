@@ -1,11 +1,9 @@
 #include <cstdlib>
 #include <iostream>
-
 #include "mygl/shader.h"
 #include "mygl/mesh.h"
 #include "mygl/geometry.h"
 #include "mygl/camera.h"
-
 #include <flag.h>
 
 /* translation and color for the flag plane */
@@ -350,7 +348,9 @@ void sceneUpdate(float dt)
         planePropeller::trans * 
         Matrix4D::rotationX(to_radians(sScene.propellerRotationAngle))
          * planePropeller::scale;
-    //sScene.propellerMatrix = sScene.propellerMatrix * Matrix4D::rotationX(5.0f *dt); // rotate propeller continuously
+    sScene.propellerMatrix = sScene.propellerMatrix * Matrix4D::rotationX(5.0f *dt); // rotate propeller continuously
+
+    flagAnimate(sScene.flag, sScene.flagSim, dt);
 }
 
 /* function to draw all objects in the scene */
@@ -475,6 +475,7 @@ int main(int argc, char **argv)
     /*-------------- main loop ----------------*/
     double timeStamp = glfwGetTime();
     double timeStampNew = 0.0;
+
 
     /* loop until user closes window */
     while (!glfwWindowShouldClose(window))

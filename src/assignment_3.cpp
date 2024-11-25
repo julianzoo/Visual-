@@ -297,6 +297,7 @@ void sceneUpdate(float dt)
     sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationY(-angleOfMotion); // Added rotation on the y-axis to let the plane's belly face the planet
     // And: rotate the plane to have its belly face towards the center of the orbit by adjusting the pitch (around the X-axis)
     sScene.planeTransformationMatrix = sScene.planeTransformationMatrix * Matrix4D::rotationX(-M_PI_2); // for reference: positive M_PI_2 would let the belly of the plane face the outer world!
+    flagAnimate(sScene.flag, sScene.flagSim, dt);
 }
 
 

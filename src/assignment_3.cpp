@@ -87,7 +87,7 @@ struct
 {
     bool mouseLeftButtonPressed = false;
     Vector2D mousePressStart;
-    bool keyPressed[6] = {false, false, false, false, false, false};
+    bool keyPressed[8] = {false, false, false, false, false, false, false, false};
 } sInput;
 
 // Added function to extract Coordinates from the transformation matrix (row-major matrix form)
@@ -110,26 +110,31 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
         screenshotToPNG("screenshot.png");
     }
 
-    /* input for cube control */
-    if (key == GLFW_KEY_W)
+    /// Input for Steering
+    if (key == GLFW_KEY_W) // acceleration
     {
         sInput.keyPressed[0] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
-    if (key == GLFW_KEY_S)
+    if (key == GLFW_KEY_S) // deceleration
     {
         sInput.keyPressed[1] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
-
-    if (key == GLFW_KEY_A)
+    if (key == GLFW_KEY_A) // left turn: combination of yaw (rotation aroung y-axis) and roll (rotation around x-axis)
     {
         sInput.keyPressed[2] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
-    if (key == GLFW_KEY_D)
+    if (key == GLFW_KEY_D) // right turn: combination of yaw (rotation aroung y-axis) and roll (rotation around x-axis)
     {
         sInput.keyPressed[3] = (action == GLFW_PRESS || action == GLFW_REPEAT);
     }
+    if (key == GLFW_KEY_LEFT_CONTROL) {
+        sInput.keyPressed[6] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
+    if (key == GLFW_KEY_SPACE) {
+        sInput.keyPressed[7] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
 
-    // Inout for Camera-Mode:
+    // Input for Camera-Mode:
     if (key == GLFW_KEY_1) {
         sInput.keyPressed[4] = (action == GLFW_PRESS || action == GLFW_REPEAT);
         sScene.cameraMode = STATIC;
@@ -140,11 +145,6 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
         if (action == GLFW_PRESS) {
             sScene.cameraMode = THIRD_PERSON;
             sScene.activeCamera = &sScene.camera2;
-            /* // Set initial position relative to the plane only when switching to this camera mode
-            Vector3D planePosition = extractPosition(sScene.planeTransformationMatrix);
-            Vector3D cameraOffset = {0.0f, 10.0f, -10.0f}; // Offset camera behind and above the plane
-            sScene.camera2.position = planePosition + cameraOffset;
-            sScene.camera2.lookAt = planePosition;*/
         }
     }
 
@@ -258,6 +258,7 @@ void sceneUpdate(float dt)
 {
     Vector3D planePosition = extractPosition(sScene.planeTransformationMatrix);
 
+    // Update Camera
     if (sScene.cameraMode == THIRD_PERSON) {
         Vector3D cameraOffset = {0.0f, 3.0f, -10.0f};// transition the camera
         // Adjust the camera to look in the direction the plane is moving
@@ -265,11 +266,9 @@ void sceneUpdate(float dt)
         cameraFollow(*sScene.activeCamera, planePosition + directionOfMotion * M_PI_2); //
     }
 
-
     /* Propeller rotation update */
     float propellerSpeed = 360.0f;
     sScene.propellerRotationAngle += propellerSpeed * dt;
-
     sScene.propellerMatrix =
         planePropeller::trans *
         Matrix4D::rotationX(to_radians(sScene.propellerRotationAngle))

@@ -17,9 +17,9 @@ struct FlagSim
      * Parameters for the 3 wave functions for the flag simulation
      */
     WaveParams parameter[3] = {
-        { 1.0f,  1.0f,  0.25f, normalize(Vector2D{0.0f,  1.0f}) },
-        { 1.2f,  1.5f, 0.75f,  normalize(Vector2D{0.0f, 1.0f}) },
-        { 0.1f,  5.0f,  2.0f,  normalize(Vector2D{-1.0f / 3.0f, 1.0f}) },
+        { 2.0f,  5.0f,  0.25f, normalize(Vector2D{0.0f,  1.0f}) },
+        { 2.2f,  5.5f, 0.75f,  normalize(Vector2D{0.0f, 1.0f}) },
+        { 0.1f,  15.0f,  2.0f,  normalize(Vector2D{-1.0f / 3.0f, 1.0f}) },
     };
 
     float accumTime = 0.0f;

@@ -26,8 +26,8 @@ Flag flagCreate(const Vector3D &color)
         Vector3D transformedVertex = flagRotation * flagScale * (flagTranslation + grid::vertexPos[i]);
 
         Vector4D vertexColor = (transformedVertex.y > 0.0f)
-                                ? Vector4D(0.0f, 0.0f, 1.0f, 1.0f)
-                                : Vector4D(1.0f, 1.0f, 0.0f, 1.0f);
+                               ? Vector4D(0.0f, 0.0f, 1.0f, 1.0f)
+                               : Vector4D(1.0f, 1.0f, 0.0f, 1.0f);
 
         flag.vertices[i] = {transformedVertex, vertexColor};
 
